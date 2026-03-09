@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login — EmpireHR</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    /* ── CSS Variables ── */
+    :root {
+      --bg       : #f5f3ef;
+      --surface  : #ffffff;
+      --text     : #1a1a2e;
+      --muted    : #6b6b80;
+      --accent   : #e85d04;
+      --accent2  : #023e8a;
+      --border   : rgba(0,0,0,0.10);
+      --input-bg : #f8f7f4;
+      --error    : #dc2626;
+      --success  : #16a34a;
+    }
+    [data-theme="dark"] {
+      --bg       : #0d0d14;
+      --surface  : #16162a;
+      --text     : #e8e8f0;
+      --muted    : #9090a8;
+      --accent   : #ff6b1a;
+      --accent2  : #4a9eff;
+      --border   : rgba(255,255,255,0.10);
+      --input-bg : #1e1e35;
+      --error    : #f87171;
+      --success  : #4ade80;
+    }
+
+    /* ── Reset ── */
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family     : 'DM Sans', sans-serif;
+      background      : var(--bg);
+      color           : var(--text);
+      min-height      : 100vh;
+      display         : flex;
+      align-items     : center;
+      justify-content : center;
+      padding         : 20px;
+      transition      : background 0.3s, color 0.3s;
+    }
+
+    /* ── Fixed controls ── */
+    .back-link {
+      position    : fixed;
+      top         : 22px;
+      left        : 20px;
+      font-size   : 0.85rem;
+      color       : var(--muted);
+      text-decoration: none;
+      display     : flex;
+      align-items : center;
+      gap         : 6px;
+      transition  : color 0.2s;
+    }
+    .back-link:hover { color: var(--accent); }
+
+    .dark-toggle {
+      position        : fixed;
+      top             : 20px;
+      right           : 20px;
+      width           : 44px;
+      height          : 44px;
+      border-radius   : 50%;
+      border          : 1.5px solid var(--border);
+      background      : var(--surface);
+      cursor          : pointer;
+      display         : flex;
+      align-items     : center;
+      justify-content : center;
+      font-size       : 1.1rem;
+      z-index         : 10;
+      transition      : all 0.3s;
+    }
+    .dark-toggle:hover { border-color: var(--accent); transform: rotate(22deg); }
+
+    /* ── Card ── */
+    .card {
+      background    : var(--surface);
+      border        : 1px solid var(--border);
+      border-radius : 24px;
+      padding       : 40px;
+      width         : 100%;
+      max-width     : 440px;
+      box-shadow    : 0 20px 80px rgba(0,0,0,0.07);
+    }
+    .card-logo { font-family: 'Syne', sans-serif; font-size: 1.5rem; font-weight: 800; margin-bottom: 4px; }
+    .card-logo span { color: var(--accent); }
+
+    /* ── Panels (login / forgot password) ── */
+    .panel        { display: none; }
+    .panel.active { display: block; }
+    .panel-title  { font-family: 'Syne', sans-serif; font-size: 1.15rem; font-weight: 800; margin-bottom: 4px; }
+    .card-sub     { color: var(--muted); font-size: 0.9rem; margin-bottom: 24px; }
+
+    /* ── Demo credentials box ── */
+    .demo-box {
+      background    : linear-gradient(135deg, rgba(232,93,4,0.08), rgba(2,62,138,0.08));
+      border        : 1px solid rgba(232,93,4,0.20);
+      border-radius : 12px;
+      padding       : 14px 16px;
+      font-size     : 0.82rem;
+      margin-bottom : 22px;
+    }
+    .demo-box p          { margin-bottom: 5px; color: var(--text); }
+    .demo-box p:last-child{ margin-bottom: 0; }
+    .demo-box strong     { color: var(--accent); }
+
+    /* ── Form elements ── */
+    .form-group   { margin-bottom: 18px; }
+    label {
+      display         : flex;
+      align-items     : center;
+      justify-content : space-between;
+      font-size       : 0.83rem;
+      font-weight     : 500;
+      margin-bottom   : 7px;
+    }
+    input {
+      width         : 100%;
+      padding       : 12px 14px;
+      background    : var(--input-bg);
+      border        : 1.5px solid var(--border);
+      border-radius : 11px;
+      color         : var(--text);
+      font-family   : 'DM Sans', sans-serif;
+      font-size     : 0.93rem;
+      outline       : none;
+      transition    : all 0.25s;
+    }
+    input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(232,93,4,0.11); }
+
+    .err      { color: var(--error); font-size: 0.77rem; margin-top: 5px; display: none; }
+    .err.show { display: block; }
+
+    .forgot-link { font-size: 0.8rem; color: var(--accent); cursor: pointer; font-weight: 500; }
+    .forgot-link:hover { text-decoration: underline; }
+
+    /* ── Verify row (for password reset email + button) ── */
+    .verify-row { display: flex; gap: 8px; align-items: stretch; }
+    .verify-row input { flex: 1; min-width: 0; }
+    .send-code-btn {
+      flex-shrink   : 0;
+      padding       : 12px 14px;
+      background    : var(--accent);
+      color         : #fff;
+      border        : none;
+      border-radius : 11px;
+      font-size     : 0.8rem;
+      font-weight   : 600;
+      cursor        : pointer;
+      font-family   : 'DM Sans', sans-serif;
+      white-space   : nowrap;
+      transition    : all 0.2s;
+    }
+    .send-code-btn:hover    { background: #c44a00; }
+    .send-code-btn:disabled { background: var(--muted); cursor: not-allowed; }
+
+    /* ── Submit button ── */
+    .submit-btn {
+      width         : 100%;
+      padding       : 14px;
+      background    : var(--accent);
+      color         : #fff;
+      border        : none;
+      border-radius : 12px;
+      font-family   : 'Syne', sans-serif;
+      font-size     : 1rem;
+      font-weight   : 700;
+      cursor        : pointer;
+      margin-top    : 4px;
+      transition    : all 0.3s;
+    }
+    .submit-btn:hover    { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(232,93,4,0.4); }
+    .submit-btn:disabled { opacity: 0.65; cursor: not-allowed; transform: none; box-shadow: none; }
+
+    /* ── Divider + links ── */
+    .divider { text-align: center; color: var(--muted); font-size: 0.85rem; margin: 20px 0; position: relative; }
+    .divider::before, .divider::after { content: ''; position: absolute; top: 50%; width: 40%; height: 1px; background: var(--border); }
+    .divider::before { left: 0; }
+    .divider::after  { right: 0; }
+    .link-row   { text-align: center; font-size: 0.85rem; color: var(--muted); }
+    .link-row a { color: var(--accent); text-decoration: none; font-weight: 500; }
+    .link-row a:hover { text-decoration: underline; }
+
+    .back-panel-link {
+      display     : inline-flex;
+      align-items : center;
+      gap         : 4px;
+      color       : var(--muted);
+      font-size   : 0.83rem;
+      cursor      : pointer;
+      margin-top  : 16px;
+      transition  : color 0.2s;
+    }
+    .back-panel-link:hover { color: var(--accent); }
+
+    /* ── Toast ── */
+    .toast {
+      position      : fixed;
+      bottom        : 30px;
+      left          : 50%;
+      transform     : translateX(-50%) translateY(120px);
+      background    : var(--success);
+      color         : #fff;
+      padding       : 12px 26px;
+      border-radius : 50px;
+      font-size     : 0.9rem;
+      font-weight   : 500;
+      z-index       : 200;
+      white-space   : nowrap;
+      transition    : transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .toast.show   { transform: translateX(-50%) translateY(0); }
+    .toast.is-err { background: var(--error); }
+  </style>
+</head>
+<body>
+
+  <a href="index (2).html" class="back-link">← Back to Home</a>
+  <button class="dark-toggle" id="dtoggle" onclick="toggleDark()">🌙</button>
+
+  <div class="card">
+    <div class="card-logo">Empire<span>HR</span></div>
+
+    <!-- ══ LOGIN PANEL ══ -->
+    <div id="loginPanel" class="panel active">
+      <div class="card-sub">Sign in to your account</div>
+
+      <!-- Demo credentials (plain text — no email obfuscation)
+      <div class="demo-box">
+        <p>🔐 <strong>Admin demo login:</strong></p>
+        <p>Email: <strong>admin@empire.hr</strong></p>
+        <p>Password: <strong>Admin@123</strong></p>
+      </div> -->
+
+      <form onsubmit="handleLogin(event)" novalidate>
+        <div class="form-group">
+          <label for="loginEmail">Email Address</label>
+          <input type="email" id="loginEmail" placeholder="your@email.com" autocomplete="email" />
+          <div class="err" id="loginEmailErr">Please enter a valid email address</div>
+        </div>
+        <div class="form-group">
+          <label>
+            Password
+            <span class="forgot-link" onclick="showPanel('forgotPanel')">Forgot password?</span>
+          </label>
+          <input type="password" id="loginPass" placeholder="Your password" autocomplete="current-password" />
+          <div class="err" id="loginCredErr">Incorrect email or password — please try again</div>
+        </div>
+        <button type="submit" class="submit-btn" id="loginBtn">Sign In →</button>
+      </form>
+
+      <div class="divider">or</div>
+      <div class="link-row">Don't have an account? <a href="signup.html">Sign up</a></div>
+    </div>
+
+    <!-- ══ FORGOT PASSWORD PANEL ══ -->
+    <div id="forgotPanel" class="panel">
+      <div class="panel-title">Reset Password</div>
+      <div class="card-sub">We'll send a reset code to your email</div>
+
+      <div class="form-group">
+        <label>Email Address</label>
+        <div class="verify-row">
+          <input type="email" id="resetEmail" placeholder="your@email.com" autocomplete="email" />
+          <button type="button" class="send-code-btn" id="resetSendBtn" onclick="sendResetCode()">Send Code</button>
+        </div>
+        <div class="err" id="resetEmailErr">Email not found in the system</div>
+      </div>
+
+      <div class="form-group">
+        <label>Verification Code</label>
+        <input type="text" id="resetCode" placeholder="Enter 6-digit code" maxlength="6" inputmode="numeric" />
+        <div class="err" id="resetCodeErr">Incorrect code — please check and try again</div>
+      </div>
+
+      <div class="form-group">
+        <label>New Password</label>
+        <input type="password" id="newPass" placeholder="Minimum 8 characters" autocomplete="new-password" />
+        <div class="err" id="newPassErr">Password must be at least 8 characters</div>
+      </div>
+
+      <div class="form-group">
+        <label>Confirm New Password</label>
+        <input type="password" id="confirmNewPass" placeholder="Repeat new password" autocomplete="new-password" />
+        <div class="err" id="confirmNewPassErr">Passwords do not match</div>
+      </div>
+
+      <button type="button" class="submit-btn" onclick="handleResetPassword()">Update Password →</button>
+      <div><span class="back-panel-link" onclick="showPanel('loginPanel')">← Back to Login</span></div>
+    </div>
+  </div><!-- /card -->
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    /* ── Constants ── */
+    const STORE   = 'emphr_employees';
+    const SESSION = 'emphr_currentUser';
+    let resetOTP  = ''; // holds the active password-reset OTP
+
+    /* ── Theme ── */
+    function toggleDark() {
+      const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      document.documentElement.setAttribute('data-theme', isDark ? '' : 'dark');
+      document.getElementById('dtoggle').textContent = isDark ? '🌙' : '☀️';
+      localStorage.setItem('emphr_theme', isDark ? 'light' : 'dark');
+    }
+    (function applyTheme() {
+      if (localStorage.getItem('emphr_theme') === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        document.getElementById('dtoggle').textContent = '☀️';
+      }
+    })();
+
+    /* ── Toast ── */
+    function showToast(msg, isErr = false) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.className   = 'toast' + (isErr ? ' is-err' : '') + ' show';
+      setTimeout(() => t.classList.remove('show'), 3500);
+    }
+
+    /* ── Switch between login and forgot-password panels ── */
+    function showPanel(id) {
+      document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+      /* Clear all inline errors when switching panels */
+      document.querySelectorAll('.err').forEach(e => e.classList.remove('show'));
+    }
+
+    /* ── Storage helpers (with legacy key migration) ── */
+    function getEmployees() {
+      let raw = localStorage.getItem(STORE);
+      if (!raw) {
+        const legacy = localStorage.getItem('employees');
+        if (legacy) { localStorage.setItem(STORE, legacy); raw = legacy; }
+      }
+      try { return JSON.parse(raw || '[]'); } catch { return []; }
+    }
+    function saveEmployees(data) {
+      localStorage.setItem(STORE, JSON.stringify(data));
+    }
+
+    /* ── Seed the default admin account on every load ── */
+    (function seedAdmin() {
+      const employees = getEmployees();
+      if (!employees.find(e => e.email === 'admin@empire.hr')) {
+        employees.unshift({
+          id            : 1,
+          firstName     : 'Super',
+          lastName      : 'Admin',
+          email         : 'admin@empire.hr',
+          role          : 'Admin',
+          password      : 'Admin@123',
+          joined        : '2024-01-01',
+          salary        : '₹12,00,000',
+          maritalStatus : 'Married',
+          isAdmin       : true
+        });
+        saveEmployees(employees);
+      }
+    })();
+
+    /* ── Handle login form submit ── */
+    function handleLogin(e) {
+      e.preventDefault();
+
+      const email = document.getElementById('loginEmail').value.trim().toLowerCase();
+      const pass  = document.getElementById('loginPass').value;
+
+      /* Clear previous errors */
+      document.getElementById('loginEmailErr').classList.remove('show');
+      document.getElementById('loginCredErr').classList.remove('show');
+
+      /* Validate email format */
+      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        document.getElementById('loginEmailErr').classList.add('show');
+        return;
+      }
+
+      /* Find matching employee */
+      const user = getEmployees().find(emp =>
+        emp.email.toLowerCase() === email && emp.password === pass
+      );
+
+      if (!user) {
+        document.getElementById('loginCredErr').classList.add('show');
+        return;
+      }
+
+      /* Animate button, save session, redirect */
+      const btn       = document.getElementById('loginBtn');
+      btn.disabled    = true;
+      btn.textContent = 'Signing in…';
+
+      localStorage.setItem(SESSION, JSON.stringify(user));
+      showToast('Welcome back, ' + user.firstName + '!');
+      setTimeout(() => { window.location.href = 'dashboard.html'; }, 900);
+    }
+
+    /* ── Send a password-reset OTP (simulated) ── */
+    function sendResetCode() {
+      const email = document.getElementById('resetEmail').value.trim().toLowerCase();
+      document.getElementById('resetEmailErr').classList.remove('show');
+
+      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        showToast('Please enter a valid email address', true);
+        return;
+      }
+
+      if (!getEmployees().find(e => e.email.toLowerCase() === email)) {
+        document.getElementById('resetEmailErr').classList.add('show');
+        return;
+      }
+
+      /* Generate OTP and start 60-second countdown */
+      resetOTP = String(Math.floor(100000 + Math.random() * 900000));
+      const btn = document.getElementById('resetSendBtn');
+      btn.disabled = true;
+      let countdown = 60;
+      btn.textContent = countdown + 's';
+      const timer = setInterval(() => {
+        countdown--;
+        btn.textContent = countdown + 's';
+        if (countdown <= 0) {
+          clearInterval(timer);
+          btn.disabled    = false;
+          btn.textContent = 'Resend';
+        }
+      }, 1000);
+
+      showToast('Reset code: ' + resetOTP + ' (demo — copy this)');
+    }
+
+    /* ── Validate and apply the password reset ── */
+    function handleResetPassword() {
+      const code = document.getElementById('resetCode').value.trim();
+      const np   = document.getElementById('newPass').value;
+      const cnp  = document.getElementById('confirmNewPass').value;
+
+      let hasError = false;
+      const setErr = (id, condition) => {
+        document.getElementById(id).classList.toggle('show', condition);
+        if (condition) hasError = true;
+      };
+      setErr('resetCodeErr',      !resetOTP || code !== resetOTP);
+      setErr('newPassErr',        np.length < 8);
+      setErr('confirmNewPassErr', np !== cnp);
+      if (hasError) return;
+
+      /* Update the password in the employee store */
+      const email     = document.getElementById('resetEmail').value.trim().toLowerCase();
+      const employees = getEmployees();
+      const idx       = employees.findIndex(e => e.email.toLowerCase() === email);
+      if (idx === -1) { showToast('Account not found', true); return; }
+
+      employees[idx].password = np;
+      saveEmployees(employees);
+
+      /* Invalidate the OTP so it cannot be reused */
+      resetOTP = '';
+
+      showToast('Password updated! Please log in.');
+      setTimeout(() => showPanel('loginPanel'), 1600);
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EmpireHR — Smart Employee Management</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="FPindex.css">
+  
+</head>
+<body>
+
+  <!-- Navigation -->
+  <nav>
+    <button class="dark-toggle" id="dtoggle" onclick="toggleDark()" aria-label="Toggle dark mode">🌙</button>
+    <a href="login.html"  class="btn btn-outline">Log In</a>
+    <a href="signup.html" class="btn btn-solid">Sign Up</a>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="blob blob1"></div>
+    <div class="blob blob2"></div>
+    <div class="hero-content">
+      <h1>Smart <em>Employee</em><br>Records Management</h1>
+      <p>Streamline your workforce with a powerful, intuitive platform. Manage profiles, track salaries, assign roles, and gain real-time insights — all in one place.</p>
+      <div class="hero-btns">
+        <a href="signup.html" class="btn btn-solid btn-lg">Get Started Free →</a>
+        <a href="login.html"  class="btn btn-outline btn-lg">Admin Login</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Social Proof Stats -->
+  <div class="stats">
+    <div class="stat"><div class="stat-num">10K+</div><div class="stat-label">Employees Managed</div></div>
+    <div class="stat"><div class="stat-num">500+</div><div class="stat-label">Companies Trust Us</div></div>
+    <div class="stat"><div class="stat-num">99.9%</div><div class="stat-label">Uptime Guarantee</div></div>
+    <div class="stat"><div class="stat-num">24/7</div><div class="stat-label">Support Available</div></div>
+  </div>
+
+  <!-- Features -->
+  <section class="section">
+    <div class="section-tag">Features</div>
+    <div class="section-title">Everything you need<br>to manage your team</div>
+    <div class="section-sub">From onboarding to payroll, EmpireHR covers every aspect of your HR workflow with elegance and precision.</div>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">👤</div>
+        <h3>Employee Profiles</h3>
+        <p>Rich profiles with salary, role, join date, and marital status — everything accessible in one place.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🔍</div>
+        <h3>Smart Search</h3>
+        <p>Find any employee by name instantly with real-time search across the entire directory.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🛡️</div>
+        <h3>Role-Based Access</h3>
+        <p>Admins get full control. Employees get a secure, read-only view of their own profile. Protected by design.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">✏️</div>
+        <h3>Easy Editing</h3>
+        <p>Update details, change roles, adjust salaries — full CRUD for admins with one click.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📊</div>
+        <h3>Overview Dashboard</h3>
+        <p>Breakdowns by role and marital status give admins instant insight into their workforce composition.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🌙</div>
+        <h3>Dark Mode</h3>
+        <p>A polished light/dark theme that persists across every page — easy on the eyes, stunning to look at.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <div class="cta">
+    <h2>Ready to transform your HR?</h2>
+    <p>Join thousands of companies already using EmpireHR to manage their teams effortlessly.</p>
+    <a href="signup.html" class="btn btn-white btn-lg">Create Your Account →</a>
+  </div>
+
+  <!-- Footer -->
+  <footer>© 2025 EmpireHR · Smart Employee Records Management · All rights reserved.</footer>
+
+  <script>
+    /* ── Theme toggle (persists via localStorage) ── */
+    function toggleDark() {
+      const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      document.documentElement.setAttribute('data-theme', isDark ? '' : 'dark');
+      document.getElementById('dtoggle').textContent = isDark ? '🌙' : '☀️';
+      localStorage.setItem('emphr_theme', isDark ? 'light' : 'dark');
+    }
+
+    /* Apply saved theme on load */
+    (function applyTheme() {
+      if (localStorage.getItem('emphr_theme') === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        document.getElementById('dtoggle').textContent = '☀️';
+      }
+    })();
+  </script>
+</body>
+</html>

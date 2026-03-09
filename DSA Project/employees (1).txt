@@ -1,0 +1,8 @@
+1|Priya Sharma|Software Engineer|2021-03-15|720000.00|Married
+2|Rahul Verma|Project Manager|2019-07-01|950000.00|Married
+3|Sneha Patel|UI/UX Designer|2022-01-10|580000.00|Single
+4|Arjun Mehta|Data Analyst|2020-11-20|660000.00|Single
+5|Kavita Nair|HR Manager|2018-05-05|870000.00|Married
+6|Rohan Das|DevOps Engineer|2023-02-28|700000.00|Single
+7|Ananya Iyer|QA Engineer|2021-09-17|540000.00|Single
+8|Vikram Joshi|Backend Developer|2020-06-12|780000.00|Married

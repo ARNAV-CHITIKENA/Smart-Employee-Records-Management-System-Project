@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sign Up — EmpireHR</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    /* ── CSS Variables ── */
+    :root {
+      --bg       : #f5f3ef;
+      --surface  : #ffffff;
+      --text     : #1a1a2e;
+      --muted    : #6b6b80;
+      --accent   : #e85d04;
+      --accent2  : #023e8a;
+      --border   : rgba(0,0,0,0.10);
+      --input-bg : #f8f7f4;
+      --error    : #dc2626;
+      --success  : #16a34a;
+    }
+    [data-theme="dark"] {
+      --bg       : #0d0d14;
+      --surface  : #16162a;
+      --text     : #e8e8f0;
+      --muted    : #9090a8;
+      --accent   : #ff6b1a;
+      --accent2  : #4a9eff;
+      --border   : rgba(255,255,255,0.10);
+      --input-bg : #1e1e35;
+      --error    : #f87171;
+      --success  : #4ade80;
+    }
+
+    /* ── Reset ── */
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family     : 'DM Sans', sans-serif;
+      background      : var(--bg);
+      color           : var(--text);
+      min-height      : 100vh;
+      display         : flex;
+      align-items     : center;
+      justify-content : center;
+      padding         : 80px 20px 40px;
+      transition      : background 0.3s, color 0.3s;
+    }
+
+    /* ── Fixed UI controls ── */
+    .back-link {
+      position    : fixed;
+      top         : 22px;
+      left        : 20px;
+      font-size   : 0.85rem;
+      color       : var(--muted);
+      text-decoration: none;
+      display     : flex;
+      align-items : center;
+      gap         : 6px;
+      transition  : color 0.2s;
+    }
+    .back-link:hover { color: var(--accent); }
+
+    .dark-toggle {
+      position        : fixed;
+      top             : 20px;
+      right           : 20px;
+      width           : 44px;
+      height          : 44px;
+      border-radius   : 50%;
+      border          : 1.5px solid var(--border);
+      background      : var(--surface);
+      cursor          : pointer;
+      display         : flex;
+      align-items     : center;
+      justify-content : center;
+      font-size       : 1.1rem;
+      z-index         : 10;
+      transition      : all 0.3s;
+    }
+    .dark-toggle:hover { border-color: var(--accent); transform: rotate(22deg); }
+
+    /* ── Card ── */
+    .card {
+      background    : var(--surface);
+      border        : 1px solid var(--border);
+      border-radius : 24px;
+      padding       : 40px;
+      width         : 100%;
+      max-width     : 500px;
+      box-shadow    : 0 20px 80px rgba(0,0,0,0.07);
+    }
+    .card-logo { font-family: 'Syne', sans-serif; font-size: 1.5rem; font-weight: 800; margin-bottom: 4px; }
+    .card-logo span { color: var(--accent); }
+    .card-sub  { color: var(--muted); font-size: 0.9rem; margin-bottom: 28px; }
+
+    /* ── Form elements ── */
+    .form-group { margin-bottom: 18px; }
+    label {
+      display       : block;
+      font-size     : 0.83rem;
+      font-weight   : 500;
+      color         : var(--text);
+      margin-bottom : 7px;
+    }
+    input, select {
+      width         : 100%;
+      padding       : 12px 14px;
+      background    : var(--input-bg);
+      border        : 1.5px solid var(--border);
+      border-radius : 11px;
+      color         : var(--text);
+      font-family   : 'DM Sans', sans-serif;
+      font-size     : 0.93rem;
+      outline       : none;
+      transition    : all 0.25s;
+    }
+    input:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(232,93,4,0.11); }
+    select option { background: var(--surface); color: var(--text); }
+
+    .err      { color: var(--error); font-size: 0.77rem; margin-top: 5px; display: none; }
+    .err.show { display: block; }
+
+    /* ── Layout helpers ── */
+    .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+    /* ── Verify row (flex, no absolute positioning) ── */
+    .verify-row { display: flex; gap: 8px; align-items: stretch; }
+    .verify-row input { flex: 1; min-width: 0; }
+    .send-code-btn {
+      flex-shrink   : 0;
+      padding       : 12px 16px;
+      background    : var(--accent);
+      color         : #fff;
+      border        : none;
+      border-radius : 11px;
+      font-size     : 0.8rem;
+      font-weight   : 600;
+      cursor        : pointer;
+      font-family   : 'DM Sans', sans-serif;
+      white-space   : nowrap;
+      transition    : all 0.2s;
+    }
+    .send-code-btn:hover    { background: #c44a00; }
+    .send-code-btn:disabled { background: var(--muted); cursor: not-allowed; }
+
+    /* ── Password strength meter ── */
+    .strength-bar  { display: flex; gap: 4px; margin-top: 8px; }
+    .seg           { flex: 1; height: 4px; border-radius: 2px; background: var(--border); transition: background 0.3s; }
+    .strength-label{ font-size: 0.75rem; color: var(--muted); margin-top: 4px; }
+
+    /* ── Admin role notice ── */
+    .admin-note {
+      background    : rgba(2,62,138,0.08);
+      border        : 1px solid rgba(2,62,138,0.20);
+      border-radius : 10px;
+      padding       : 10px 14px;
+      font-size     : 0.8rem;
+      color         : var(--accent2);
+      margin-bottom : 18px;
+      display       : none;
+    }
+    .admin-note.show { display: block; }
+
+    /* ── Submit button ── */
+    .submit-btn {
+      width         : 100%;
+      padding       : 14px;
+      background    : var(--accent);
+      color         : #fff;
+      border        : none;
+      border-radius : 12px;
+      font-family   : 'Syne', sans-serif;
+      font-size     : 1rem;
+      font-weight   : 700;
+      cursor        : pointer;
+      letter-spacing: 0.4px;
+      margin-top    : 8px;
+      transition    : all 0.3s;
+    }
+    .submit-btn:hover    { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(232,93,4,0.4); }
+    .submit-btn:disabled { opacity: 0.65; cursor: not-allowed; transform: none; box-shadow: none; }
+
+    /* ── Divider + link row ── */
+    .divider { text-align: center; color: var(--muted); font-size: 0.85rem; margin: 20px 0; position: relative; }
+    .divider::before, .divider::after { content: ''; position: absolute; top: 50%; width: 40%; height: 1px; background: var(--border); }
+    .divider::before { left: 0; }
+    .divider::after  { right: 0; }
+    .link-row   { text-align: center; font-size: 0.85rem; color: var(--muted); }
+    .link-row a { color: var(--accent); text-decoration: none; font-weight: 500; }
+    .link-row a:hover { text-decoration: underline; }
+
+    /* ── Toast ── */
+    .toast {
+      position      : fixed;
+      bottom        : 30px;
+      left          : 50%;
+      transform     : translateX(-50%) translateY(120px);
+      background    : var(--success);
+      color         : #fff;
+      padding       : 12px 26px;
+      border-radius : 50px;
+      font-size     : 0.9rem;
+      font-weight   : 500;
+      z-index       : 200;
+      white-space   : nowrap;
+      transition    : transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .toast.show   { transform: translateX(-50%) translateY(0); }
+    .toast.is-err { background: var(--error); }
+  </style>
+</head>
+<body>
+
+  <a href="index (2).html" class="back-link">← Back to Home</a>
+  <button class="dark-toggle" id="dtoggle" onclick="toggleDark()">🌙</button>
+
+  <div class="card">
+    <div class="card-logo">Empire<span>HR</span></div>
+    <div class="card-sub">Create your account to get started</div>
+
+    <!-- Admin role notice (shown when Admin is selected) -->
+    <div class="admin-note" id="adminNote">
+      🔐 <strong>Admin account:</strong> You will have full access to manage all employees.
+    </div>
+
+    <form id="signupForm" onsubmit="handleSignup(event)" novalidate>
+
+      <!-- Name row -->
+      <div class="row2">
+        <div class="form-group">
+          <label>First Name *</label>
+          <input type="text" id="firstName" placeholder="John" autocomplete="given-name" />
+          <div class="err" id="firstNameErr">First name is required</div>
+        </div>
+        <div class="form-group">
+          <label>Last Name *</label>
+          <input type="text" id="lastName" placeholder="Doe" autocomplete="family-name" />
+          <div class="err" id="lastNameErr">Last name is required</div>
+        </div>
+      </div>
+
+      <!-- Email -->
+      <div class="form-group">
+        <label>Email Address *</label>
+        <input type="email" id="email" placeholder="john@company.com" autocomplete="email" />
+        <div class="err" id="emailErr">Please enter a valid email address</div>
+      </div>
+
+      <!-- Role -->
+      <div class="form-group">
+        <label>Role in Company *</label>
+        <select id="role" onchange="onRoleChange()">
+          <option value="">— Select your role —</option>
+          <option value="Admin">Admin (Full Access)</option>
+          <option value="Software Engineer">Software Engineer</option>
+          <option value="Product Manager">Product Manager</option>
+          <option value="UI/UX Designer">UI/UX Designer</option>
+          <option value="Data Analyst">Data Analyst</option>
+          <option value="HR Manager">HR Manager</option>
+          <option value="Marketing Manager">Marketing Manager</option>
+          <option value="Sales Executive">Sales Executive</option>
+          <option value="Finance Analyst">Finance Analyst</option>
+          <option value="Operations Manager">Operations Manager</option>
+          <option value="DevOps Engineer">DevOps Engineer</option>
+          <option value="Business Analyst">Business Analyst</option>
+          <option value="Customer Support">Customer Support</option>
+        </select>
+        <div class="err" id="roleErr">Please select a role</div>
+      </div>
+
+      <!-- Email verification -->
+      <div class="form-group">
+        <label>Email Verification Code *</label>
+        <div class="verify-row">
+          <input type="text" id="verifyCode" placeholder="Enter 6-digit code" maxlength="6" inputmode="numeric" />
+          <button type="button" class="send-code-btn" id="sendCodeBtn" onclick="sendVerificationCode()">Send Code</button>
+        </div>
+        <div class="err" id="verifyErr">Incorrect verification code — please check and try again</div>
+      </div>
+
+      <!-- Password + strength -->
+      <div class="form-group">
+        <label>Password *</label>
+        <input type="password" id="password" placeholder="Create a strong password" oninput="checkStrength()" autocomplete="new-password" />
+        <div class="strength-bar">
+          <div class="seg" id="s1"></div>
+          <div class="seg" id="s2"></div>
+          <div class="seg" id="s3"></div>
+          <div class="seg" id="s4"></div>
+        </div>
+        <div class="strength-label" id="strengthLabel">Password strength</div>
+        <div class="err" id="passErr">Password must be at least 8 characters</div>
+      </div>
+
+      <!-- Confirm password -->
+      <div class="form-group">
+        <label>Confirm Password *</label>
+        <input type="password" id="confirmPass" placeholder="Repeat your password" autocomplete="new-password" />
+        <div class="err" id="confirmErr">Passwords do not match</div>
+      </div>
+
+      <button type="submit" class="submit-btn" id="submitBtn">Create Account →</button>
+    </form>
+
+    <div class="divider">or</div>
+    <div class="link-row">Already have an account? <a href="login.html">Sign in</a></div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    /* ── Constants ── */
+    const STORE   = 'emphr_employees';
+    const SESSION = 'emphr_currentUser';
+    let generatedCode = ''; // holds the OTP sent to the user
+
+    /* ── Theme ── */
+    function toggleDark() {
+      const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      document.documentElement.setAttribute('data-theme', isDark ? '' : 'dark');
+      document.getElementById('dtoggle').textContent = isDark ? '🌙' : '☀️';
+      localStorage.setItem('emphr_theme', isDark ? 'light' : 'dark');
+    }
+    (function applyTheme() {
+      if (localStorage.getItem('emphr_theme') === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        document.getElementById('dtoggle').textContent = '☀️';
+      }
+    })();
+
+    /* ── Toast ── */
+    function showToast(msg, isErr = false) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.className   = 'toast' + (isErr ? ' is-err' : '') + ' show';
+      setTimeout(() => t.classList.remove('show'), 3500);
+    }
+
+    /* ── Storage helpers (with legacy key migration) ── */
+    function getEmployees() {
+      let raw = localStorage.getItem(STORE);
+      if (!raw) {
+        const legacy = localStorage.getItem('employees');
+        if (legacy) { localStorage.setItem(STORE, legacy); raw = legacy; }
+      }
+      try { return JSON.parse(raw || '[]'); } catch { return []; }
+    }
+    function saveEmployees(data) {
+      localStorage.setItem(STORE, JSON.stringify(data));
+    }
+
+    /* ── Show admin notice when Admin role is selected ── */
+    function onRoleChange() {
+      const isAdmin = document.getElementById('role').value === 'Admin';
+      document.getElementById('adminNote').classList.toggle('show', isAdmin);
+    }
+
+    /* ── Send a 6-digit OTP (simulated for demo) ── */
+    function sendVerificationCode() {
+      const email = document.getElementById('email').value.trim();
+      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        showToast('Please enter a valid email address first', true);
+        return;
+      }
+      generatedCode = String(Math.floor(100000 + Math.random() * 900000));
+
+      /* Countdown timer on the button */
+      const btn = document.getElementById('sendCodeBtn');
+      btn.disabled = true;
+      let countdown = 60;
+      btn.textContent = countdown + 's';
+      const timer = setInterval(() => {
+        countdown--;
+        btn.textContent = countdown + 's';
+        if (countdown <= 0) {
+          clearInterval(timer);
+          btn.disabled    = false;
+          btn.textContent = 'Resend';
+        }
+      }, 1000);
+
+      showToast('Your code: ' + generatedCode + ' (demo — copy this)');
+    }
+
+    /* ── Live password strength meter ── */
+    function checkStrength() {
+      const p    = document.getElementById('password').value;
+      const segs = ['s1','s2','s3','s4'].map(id => document.getElementById(id));
+      segs.forEach(s => s.style.background = 'var(--border)');
+
+      let score = 0;
+      if (p.length >= 8)          score++;
+      if (/[A-Z]/.test(p))        score++;
+      if (/[0-9]/.test(p))        score++;
+      if (/[^A-Za-z0-9]/.test(p)) score++;
+
+      const colors = ['', '#ef4444', '#f97316', '#eab308', '#22c55e'];
+      const labels = ['', 'Weak', 'Fair', 'Good', 'Strong ✓'];
+      for (let i = 0; i < score; i++) segs[i].style.background = colors[score];
+      document.getElementById('strengthLabel').textContent = labels[score] || 'Password strength';
+    }
+
+    /* ── Validate and submit the signup form ── */
+    function handleSignup(e) {
+      e.preventDefault();
+
+      const fn    = document.getElementById('firstName').value.trim();
+      const ln    = document.getElementById('lastName').value.trim();
+      const email = document.getElementById('email').value.trim().toLowerCase();
+      const role  = document.getElementById('role').value;
+      const code  = document.getElementById('verifyCode').value.trim();
+      const pass  = document.getElementById('password').value;
+      const conf  = document.getElementById('confirmPass').value;
+
+      /* Validate each field */
+      let hasError = false;
+      const setErr = (id, condition) => {
+        document.getElementById(id).classList.toggle('show', condition);
+        if (condition) hasError = true;
+      };
+      setErr('firstNameErr', !fn);
+      setErr('lastNameErr',  !ln);
+      setErr('emailErr',     !email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email));
+      setErr('roleErr',      !role);
+      setErr('verifyErr',    !generatedCode || code !== generatedCode);
+      setErr('passErr',      pass.length < 8);
+      setErr('confirmErr',   pass !== conf);
+      if (hasError) return;
+
+      /* Prevent duplicate emails */
+      const employees = getEmployees();
+      if (employees.find(emp => emp.email.toLowerCase() === email)) {
+        showToast('An account with this email already exists.', true);
+        return;
+      }
+
+      /* Disable button during async fake-delay */
+      const btn = document.getElementById('submitBtn');
+      btn.disabled    = true;
+      btn.textContent = 'Creating account…';
+
+      /* Build user object */
+      const isAdmin = role === 'Admin';
+      const user = {
+        id            : Date.now(),
+        firstName     : fn,
+        lastName      : ln,
+        email         : email,
+        role          : role,
+        password      : pass,
+        joined        : new Date().toISOString().split('T')[0],
+        salary        : 'Not set',
+        maritalStatus : 'Not specified',
+        isAdmin       : isAdmin
+      };
+
+      /* Persist and redirect */
+      employees.push(user);
+      saveEmployees(employees);
+      localStorage.setItem(SESSION, JSON.stringify(user));
+
+      showToast('Account created! Redirecting…');
+      setTimeout(() => { window.location.href = 'dashboard.html'; }, 1200);
+    }
+  </script>
+</body>
+</html>

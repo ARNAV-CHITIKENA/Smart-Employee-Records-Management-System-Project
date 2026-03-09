@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard — EmpireHR</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="Dashboardstylesheet" />
+  <link rel="stylesheet" href="Dashboardstylesheet.css">
+ 
+</head>
+<body>
+
+  <!-- ═══════════════════════════════════════
+       SIDEBAR
+  ═══════════════════════════════════════ -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">Empire<span>HR</span></div>
+    <!-- Shown only for admins -->
+    <div class="admin-badge" id="adminBadge">⚙️ ADMIN ACCESS</div>
+    <!-- Nav links built dynamically by buildSidebarNav() -->
+    <nav class="nav-links" id="sidebarNav"></nav>
+    <div class="sidebar-footer">
+      <div class="user-card">
+        <div class="s-avatar"       id="sidebarAvatar">?</div>
+        <div class="user-info">
+          <div class="user-name-text" id="sidebarName">Loading…</div>
+          <div class="user-role-text" id="sidebarRole">—</div>
+        </div>
+      </div>
+      <button class="btn-logout" onclick="logout()">🚪 Logout</button>
+    </div>
+  </aside>
+
+  <!-- ═══════════════════════════════════════
+       MAIN AREA
+  ═══════════════════════════════════════ -->
+  <div class="main">
+
+    <!-- Topbar -->
+    <div class="topbar">
+      <div class="page-title" id="pageTitle">Dashboard</div>
+      <div class="topbar-right">
+        <!-- Name-only search — admin only, hidden for regular employees -->
+        <div class="search-bar" id="searchBarWrapper" style="display:none;">
+          <span style="color:var(--muted);font-size:.9rem;">🔍</span>
+          <input type="text" id="searchInput" placeholder="Search by name…" oninput="filterByName()" />
+        </div>
+        <button class="dark-toggle" id="dtoggle" onclick="toggleDark()" aria-label="Toggle dark mode">🌙</button>
+        <!-- Add Employee — admin only, hidden for regular employees -->
+        <button class="btn btn-accent" id="addEmpBtn" onclick="openAddModal()" style="display:none;">+ Add Employee</button>
+      </div>
+    </div>
+
+    <!-- Dynamic content area — filled by renderView() -->
+    <div class="content" id="mainContent">
+      <div style="text-align:center; padding:80px; color:var(--muted);">Loading…</div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════
+       ADD / EDIT EMPLOYEE MODAL  (admin only)
+  ═══════════════════════════════════════ -->
+  <div class="modal-overlay" id="empModal">
+    <div class="modal">
+      <div class="modal-title" id="modalTitle">Add Employee</div>
+      <div class="modal-sub"   id="modalSub">Fill in the details below</div>
+
+      <div class="r2">
+        <div class="mg">
+          <label>First Name *</label>
+          <input type="text" id="mFirst" placeholder="John" />
+          <div class="merr" id="mFirstErr">Required</div>
+        </div>
+        <div class="mg">
+          <label>Last Name *</label>
+          <input type="text" id="mLast" placeholder="Doe" />
+          <div class="merr" id="mLastErr">Required</div>
+        </div>
+      </div>
+
+      <div class="mg">
+        <label>Email Address *</label>
+        <input type="email" id="mEmail" placeholder="john@company.com" />
+        <div class="merr" id="mEmailErr">Valid email required</div>
+      </div>
+
+      <div class="mg">
+        <label>Role in Company *</label>
+        <select id="mRole">
+          <option value="">— Select role —</option>
+          <option value="Admin">Admin (Full Access)</option>
+          <option value="Software Engineer">Software Engineer</option>
+          <option value="Product Manager">Product Manager</option>
+          <option value="UI/UX Designer">UI/UX Designer</option>
+          <option value="Data Analyst">Data Analyst</option>
+          <option value="HR Manager">HR Manager</option>
+          <option value="Marketing Manager">Marketing Manager</option>
+          <option value="Sales Executive">Sales Executive</option>
+          <option value="Finance Analyst">Finance Analyst</option>
+          <option value="Operations Manager">Operations Manager</option>
+          <option value="DevOps Engineer">DevOps Engineer</option>
+          <option value="Business Analyst">Business Analyst</option>
+          <option value="Customer Support">Customer Support</option>
+        </select>
+        <div class="merr" id="mRoleErr">Please select a role</div>
+      </div>
+
+      <div class="r2">
+        <div class="mg">
+          <label>Annual Salary</label>
+          <input type="text" id="mSalary" placeholder="e.g. ₹8,50,000" />
+        </div>
+        <div class="mg">
+          <label>Join Date</label>
+          <input type="date" id="mJoined" />
+        </div>
+      </div>
+
+      <div class="mg">
+        <label>Marital Status</label>
+        <select id="mMarital">
+          <option value="Single">Single</option>
+          <option value="Married">Married</option>
+          <option value="Divorced">Divorced</option>
+          <option value="Widowed">Widowed</option>
+          <option value="Not specified">Not specified</option>
+        </select>
+      </div>
+
+      <!-- Password field shown only when adding a new employee -->
+      <div class="mg" id="passGroup">
+        <label>Login Password</label>
+        <input type="password" id="mPass" placeholder="Leave blank → default: Emp@123" />
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-cancel" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-save"   onclick="saveEmployee()">Save Employee</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════
+       DELETE CONFIRMATION MODAL  (admin only)
+  ═══════════════════════════════════════ -->
+  <div class="modal-overlay" id="delModal">
+    <div class="modal" style="max-width:370px; text-align:center;">
+      <div style="font-size:2.8rem; margin-bottom:12px;">⚠️</div>
+      <div class="modal-title">Delete Employee?</div>
+      <div class="modal-sub">This is permanent and cannot be undone.</div>
+      <div class="modal-footer" style="justify-content:center;">
+        <button class="btn btn-cancel" onclick="closeDelModal()">Cancel</button>
+        <button class="btn btn-save"   style="background:var(--error); box-shadow:none;" onclick="confirmDelete()">Yes, Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <!-- ═══════════════════════════════════════
+       JAVASCRIPT
+  ═══════════════════════════════════════ -->
+  <script>
+
+    /* ─────────────────────────────────────────
+       A. CONSTANTS & STATE
+    ───────────────────────────────────────── */
+    const STORE   = 'emphr_employees';    // localStorage key — employee list
+    const SESSION = 'emphr_currentUser';  // localStorage key — session user
+
+    let currentUser  = null;       // the logged-in user object
+    let isAdmin      = false;      // whether that user is an admin
+    let editingId    = null;       // employee id being edited (null = adding new)
+    let deletingId   = null;       // employee id pending deletion
+    let activeFilter = 'All';      // active role filter chip value
+    let currentView  = 'employees';// current rendered view
+
+    /* ─────────────────────────────────────────
+       B. STORAGE HELPERS
+    ───────────────────────────────────────── */
+
+    /** Returns the employee array, migrating from the legacy key if needed. */
+    function getEmployees() {
+      let raw = localStorage.getItem(STORE);
+      if (!raw) {
+        const legacy = localStorage.getItem('employees');
+        if (legacy) { localStorage.setItem(STORE, legacy); raw = legacy; }
+      }
+      try { return JSON.parse(raw || '[]'); } catch { return []; }
+    }
+
+    /** Persists the employee array. */
+    function saveEmployees(data) {
+      localStorage.setItem(STORE, JSON.stringify(data));
+    }
+
+    /** Returns the session user, migrating from the legacy key if needed. */
+    function getSession() {
+      let raw = localStorage.getItem(SESSION);
+      if (!raw) {
+        const legacy = localStorage.getItem('currentUser');
+        if (legacy) { localStorage.setItem(SESSION, legacy); raw = legacy; }
+      }
+      try { return JSON.parse(raw || 'null'); } catch { return null; }
+    }
+
+    /* ─────────────────────────────────────────
+       C. SEEDING
+    ───────────────────────────────────────── */
+
+    /** Ensures the default super-admin account always exists. */
+    function seedAdmin() {
+      const employees = getEmployees();
+      if (!employees.find(e => e.email === 'admin@empire.hr')) {
+        employees.unshift({
+          id: 1,
+          firstName: 'Super', lastName: 'Admin',
+          email: 'admin@empire.hr',
+          role: 'Admin', password: 'Admin@123',
+          joined: '2024-01-01',
+          salary: '₹12,00,000',
+          maritalStatus: 'Married',
+          isAdmin: true
+        });
+        saveEmployees(employees);
+      }
+    }
+
+    /* ─────────────────────────────────────────
+       D. INITIALISATION
+    ───────────────────────────────────────── */
+
+    function init() {
+      seedAdmin();
+
+      currentUser = getSession();
+
+      /* If no session exists, auto-login as the demo admin (for direct URL access) */
+      if (!currentUser) {
+        const admin = getEmployees().find(e => e.email === 'admin@empire.hr');
+        if (admin) {
+          currentUser = admin;
+          localStorage.setItem(SESSION, JSON.stringify(admin));
+        } else {
+          window.location.href = 'login.html';
+          return;
+        }
+      }
+
+      /* Refresh user data from store to pick up any admin edits */
+      const fresh = getEmployees().find(e => e.id === currentUser.id);
+      if (fresh) {
+        currentUser = fresh;
+        localStorage.setItem(SESSION, JSON.stringify(fresh));
+      }
+
+      isAdmin = currentUser.isAdmin === true || currentUser.role === 'Admin';
+
+      /* Populate sidebar identity */
+      document.getElementById('sidebarAvatar').textContent = currentUser.firstName[0].toUpperCase();
+      document.getElementById('sidebarName').textContent   = currentUser.firstName + ' ' + currentUser.lastName;
+      document.getElementById('sidebarRole').textContent   = currentUser.role;
+      if (isAdmin) document.getElementById('adminBadge').style.display = 'block';
+
+      buildSidebarNav();
+      loadTheme();
+
+      /* Show admin-only topbar controls */
+      if (isAdmin) {
+        document.getElementById('searchBarWrapper').style.display = '';
+        document.getElementById('addEmpBtn').style.display        = '';
+      }
+
+      /* Default view depends on role */
+      renderView(isAdmin ? 'employees' : 'myProfile');
+    }
+
+    /* ─────────────────────────────────────────
+       E. THEME
+    ───────────────────────────────────────── */
+
+    function toggleDark() {
+      const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      document.documentElement.setAttribute('data-theme', isDark ? '' : 'dark');
+      document.getElementById('dtoggle').textContent = isDark ? '🌙' : '☀️';
+      localStorage.setItem('emphr_theme', isDark ? 'light' : 'dark');
+    }
+    function loadTheme() {
+      if (localStorage.getItem('emphr_theme') === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        document.getElementById('dtoggle').textContent = '☀️';
+      }
+    }
+    function logout() {
+      localStorage.removeItem(SESSION);
+      window.location.href = 'login.html';
+    }
+
+    /* ─────────────────────────────────────────
+       F. SIDEBAR
+    ───────────────────────────────────────── */
+
+    /** Builds nav links appropriate to the user's role. */
+    function buildSidebarNav() {
+      const nav = document.getElementById('sidebarNav');
+      if (isAdmin) {
+        nav.innerHTML = `
+          <a class="nav-item" id="navEmployees" onclick="renderView('employees')"><span class="icon">👥</span>All Employees</a>
+          <a class="nav-item" id="navOverview"  onclick="renderView('overview')"><span class="icon">📊</span>Overview</a>
+          <a class="nav-item" id="navMyProfile" onclick="renderView('myProfile')"><span class="icon">👤</span>My Profile</a>`;
+      } else {
+        /* Regular employees only see their own profile */
+        nav.innerHTML = `
+          <a class="nav-item" id="navMyProfile" onclick="renderView('myProfile')"><span class="icon">👤</span>My Profile</a>`;
+      }
+    }
+
+    /** Highlights the correct nav item for the current view. */
+    function setActiveNav(view) {
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      const map = { employees:'navEmployees', overview:'navOverview', myProfile:'navMyProfile' };
+      const el  = document.getElementById(map[view]);
+      if (el) el.classList.add('active');
+    }
+
+    /* ─────────────────────────────────────────
+       G. VIEW ROUTER
+    ───────────────────────────────────────── */
+
+    /**
+     * Central router. Non-admin users are silently redirected to
+     * 'myProfile' regardless of the requested view.
+     */
+    function renderView(view) {
+      if (!isAdmin && view !== 'myProfile') view = 'myProfile';
+      currentView = view;
+      setActiveNav(view);
+      const titles = { employees:'Employee Directory', overview:'Overview', myProfile:'My Profile' };
+      document.getElementById('pageTitle').textContent = titles[view] || 'Dashboard';
+      if      (view === 'employees') renderEmployeesView();
+      else if (view === 'overview')  renderOverviewView();
+      else                           renderMyProfileView();
+    }
+
+    /* ─────────────────────────────────────────
+       H. EMPLOYEES VIEW  (admin only)
+    ───────────────────────────────────────── */
+
+    function renderEmployeesView() {
+      const emps     = getEmployees();
+      const roles    = [...new Set(emps.map(e => e.role))];
+      const newMonth = emps.filter(e =>
+        new Date(e.joined) > new Date(Date.now() - 30*24*60*60*1000)
+      ).length;
+
+      document.getElementById('mainContent').innerHTML = `
+        <div class="stats-grid">
+          <div class="stat-card"><div class="stat-icon" style="background:rgba(232,93,4,.12)">👥</div><div><div class="stat-num">${emps.length}</div><div class="stat-label">Total Employees</div></div></div>
+          <div class="stat-card"><div class="stat-icon" style="background:rgba(22,163,74,.12)">🏢</div><div><div class="stat-num">${roles.length}</div><div class="stat-label">Unique Roles</div></div></div>
+          <div class="stat-card"><div class="stat-icon" style="background:rgba(2,62,138,.12)">📅</div><div><div class="stat-num">${newMonth}</div><div class="stat-label">Joined This Month</div></div></div>
+          <div class="stat-card"><div class="stat-icon" style="background:rgba(234,179,8,.12)">🔐</div><div><div class="stat-num">${emps.filter(e=>e.isAdmin).length}</div><div class="stat-label">Admin Accounts</div></div></div>
+        </div>
+        <div class="filter-row" id="roleFilters"></div>
+        <div class="table-card">
+          <div class="table-header">
+            <div class="table-title">All Employees</div>
+            <div class="emp-count" id="empCount"></div>
+          </div>
+          <div class="tbl-wrap">
+            <table>
+              <thead><tr>
+                <th>Employee</th><th>Role</th><th>Salary</th>
+                <th>Joined</th><th>Marital Status</th><th>Actions</th>
+              </tr></thead>
+              <tbody id="empTableBody"></tbody>
+            </table>
+          </div>
+        </div>`;
+      renderRoleFilters();
+      renderTable();
+    }
+
+    /** Rebuilds role filter chips from the current employee list. */
+    function renderRoleFilters() {
+      const el = document.getElementById('roleFilters');
+      if (!el) return;
+      const roles = ['All', ...new Set(getEmployees().map(e => e.role))];
+      el.innerHTML = roles.map(r =>
+        `<button class="filter-chip ${r === activeFilter ? 'active' : ''}"
+                 onclick="setFilter(this,'${r.replace(/'/g,"\\'")}')">
+           ${r}
+         </button>`
+      ).join('');
+    }
+
+    /** Updates the active role filter then re-renders the table. */
+    function setFilter(btn, role) {
+      activeFilter = role;
+      document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+      btn.classList.add('active');
+      renderTable();
+    }
+
+    /**
+     * Applies role filter + name-only search, then renders table rows.
+     * Search is restricted to firstName + lastName only.
+     */
+    function renderTable() {
+      const searchEl = document.getElementById('searchInput');
+      const query    = (searchEl ? searchEl.value : '').trim().toLowerCase();
+
+      let employees = getEmployees();
+      if (activeFilter !== 'All') employees = employees.filter(e => e.role === activeFilter);
+
+      /* Name-only filter */
+      const results = employees.filter(e =>
+        (e.firstName + ' ' + e.lastName).toLowerCase().includes(query)
+      );
+
+      const countEl = document.getElementById('empCount');
+      if (countEl) countEl.textContent = results.length + ' of ' + employees.length;
+
+      const tbody = document.getElementById('empTableBody');
+      if (!tbody) return;
+
+      if (!results.length) {
+        tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state"><div class="empty-icon">🔍</div><div>No employees match your search</div></div></td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = results.map(e => {
+        const initials = (e.firstName[0] + e.lastName[0]).toUpperCase();
+        const joined   = e.joined
+          ? new Date(e.joined + 'T00:00:00').toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' })
+          : '—';
+        const isSelf   = e.id === currentUser.id;
+        const badge    = `<span class="role-badge${e.isAdmin ? ' is-admin' : ''}">${e.role}</span>`;
+        /* Admin cannot delete their own account — prevents self-lockout */
+        const delBtn   = isSelf ? '' : `<button class="btn btn-sm btn-del" onclick="openDelModal(${e.id})">🗑️</button>`;
+
+        return `
+          <tr>
+            <td>
+              <div style="display:flex;align-items:center;gap:10px;">
+                <div class="emp-avatar">${initials}</div>
+                <div>
+                  <div class="emp-name-t">
+                    ${e.firstName} ${e.lastName}
+                    ${isSelf ? '&nbsp;<span style="font-size:.67rem;color:var(--accent);font-weight:700;">YOU</span>' : ''}
+                  </div>
+                  <div class="emp-email-t">${e.email}</div>
+                </div>
+              </div>
+            </td>
+            <td>${badge}</td>
+            <td>${e.salary || '—'}</td>
+            <td>${joined}</td>
+            <td>${e.maritalStatus || '—'}</td>
+            <td>
+              <div class="actions-cell">
+                <button class="btn btn-sm btn-edit" onclick="openEditModal(${e.id})">✏️ Edit</button>
+                ${delBtn}
+              </div>
+            </td>
+          </tr>`;
+      }).join('');
+    }
+
+    /** Called on every keystroke in the search input. */
+    function filterByName() {
+      if (currentView === 'employees') renderTable();
+    }
+
+    /* ─────────────────────────────────────────
+       I. OVERVIEW VIEW  (admin only)
+    ───────────────────────────────────────── */
+
+    function renderOverviewView() {
+      const emps = getEmployees();
+      const byRole    = emps.reduce((a,e) => { a[e.role] = (a[e.role]||0)+1; return a; }, {});
+      const byMarital = emps.reduce((a,e) => { const k = e.maritalStatus||'Not specified'; a[k]=(a[k]||0)+1; return a; }, {});
+
+      const roleCards = Object.entries(byRole).map(([r,c]) =>
+        `<div class="stat-card"><div class="stat-icon" style="background:rgba(2,62,138,.10)">💼</div><div><div class="stat-num">${c}</div><div class="stat-label">${r}</div></div></div>`
+      ).join('');
+      const marCards = Object.entries(byMarital).map(([s,c]) =>
+        `<div class="stat-card"><div class="stat-icon" style="background:rgba(22,163,74,.10)">❤️</div><div><div class="stat-num">${c}</div><div class="stat-label">${s}</div></div></div>`
+      ).join('');
+
+      document.getElementById('mainContent').innerHTML = `
+        <div class="stats-grid">
+          <div class="stat-card"><div class="stat-icon" style="background:rgba(232,93,4,.12)">👥</div><div><div class="stat-num">${emps.length}</div><div class="stat-label">Total Employees</div></div></div>
+          <div class="stat-card"><div class="stat-icon" style="background:rgba(2,62,138,.12)">🏢</div><div><div class="stat-num">${Object.keys(byRole).length}</div><div class="stat-label">Unique Roles</div></div></div>
+          <div class="stat-card"><div class="stat-icon" style="background:rgba(234,179,8,.12)">🔐</div><div><div class="stat-num">${emps.filter(e=>e.isAdmin).length}</div><div class="stat-label">Admin Users</div></div></div>
+        </div>
+        <div class="section-label">Breakdown by Role</div>
+        <div class="stats-grid">${roleCards || '<p style="color:var(--muted)">No data yet</p>'}</div>
+        <div class="section-label" style="margin-top:8px;">Breakdown by Marital Status</div>
+        <div class="stats-grid">${marCards  || '<p style="color:var(--muted)">No data yet</p>'}</div>`;
+    }
+
+    /* ─────────────────────────────────────────
+       J. MY PROFILE VIEW  (all users)
+    ───────────────────────────────────────── */
+
+    /**
+     * Shows the current user's profile.
+     * Regular employees see a read-only card with no edit controls.
+     * Admins get an "Edit My Profile" button.
+     */
+    function renderMyProfileView() {
+      const u      = currentUser;
+      const init   = (u.firstName[0] + u.lastName[0]).toUpperCase();
+      const joined = u.joined
+        ? new Date(u.joined + 'T00:00:00').toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' })
+        : '—';
+
+      document.getElementById('mainContent').innerHTML = `
+        <div class="profile-wrap">
+          ${!isAdmin ? `<div class="readonly-banner">ℹ️ Your profile is <strong>read-only</strong>. Contact your administrator to update your details.</div>` : ''}
+          <div class="profile-card">
+            <div class="profile-header">
+              <div class="profile-avatar">${init}</div>
+              <div>
+                <div class="profile-name-t">${u.firstName} ${u.lastName}</div>
+                <div class="profile-role-t">${u.role}${u.isAdmin ? '&nbsp;·&nbsp;<span style="color:var(--accent);font-weight:600;">Admin</span>' : ''}</div>
+              </div>
+            </div>
+            <div class="profile-fields">
+              <div><div class="pf-label">Full Name</div><div class="pf-val">${u.firstName} ${u.lastName}</div></div>
+              <div><div class="pf-label">Email</div><div class="pf-val" style="word-break:break-all">${u.email}</div></div>
+              <div><div class="pf-label">Role</div><div class="pf-val">${u.role}</div></div>
+              <div><div class="pf-label">Salary</div><div class="pf-val">${u.salary || '—'}</div></div>
+              <div><div class="pf-label">Joined On</div><div class="pf-val">${joined}</div></div>
+              <div><div class="pf-label">Marital Status</div><div class="pf-val">${u.maritalStatus || '—'}</div></div>
+            </div>
+            ${isAdmin ? `<div style="margin-top:24px;"><button class="btn btn-accent" onclick="openEditModal(${u.id})">✏️ Edit My Profile</button></div>` : ''}
+          </div>
+        </div>`;
+    }
+
+    /* ─────────────────────────────────────────
+       K. ADD / EDIT MODAL  (admin only)
+    ───────────────────────────────────────── */
+
+    function openAddModal() {
+      if (!isAdmin) return;
+      editingId = null;
+      document.getElementById('modalTitle').textContent    = 'Add New Employee';
+      document.getElementById('modalSub').textContent      = 'Fill in the details below';
+      document.getElementById('passGroup').style.display   = '';
+      ['mFirst','mLast','mEmail','mSalary','mPass'].forEach(id => document.getElementById(id).value = '');
+      document.getElementById('mRole').value    = '';
+      document.getElementById('mMarital').value = 'Single';
+      document.getElementById('mJoined').value  = new Date().toISOString().split('T')[0];
+      clearModalErrors();
+      document.getElementById('empModal').classList.add('open');
+    }
+
+    function openEditModal(id) {
+      if (!isAdmin) return;
+      const emp = getEmployees().find(e => e.id === id);
+      if (!emp) return;
+      editingId = id;
+      document.getElementById('modalTitle').textContent    = 'Edit Employee';
+      document.getElementById('modalSub').textContent      = 'Editing: ' + emp.firstName + ' ' + emp.lastName;
+      document.getElementById('passGroup').style.display   = 'none'; // hide password on edit
+      document.getElementById('mFirst').value   = emp.firstName;
+      document.getElementById('mLast').value    = emp.lastName;
+      document.getElementById('mEmail').value   = emp.email;
+      document.getElementById('mRole').value    = emp.role;
+      document.getElementById('mSalary').value  = emp.salary || '';
+      document.getElementById('mJoined').value  = emp.joined || '';
+      document.getElementById('mMarital').value = emp.maritalStatus || 'Not specified';
+      clearModalErrors();
+      document.getElementById('empModal').classList.add('open');
+    }
+
+    function clearModalErrors() {
+      ['mFirstErr','mLastErr','mEmailErr','mRoleErr'].forEach(id =>
+        document.getElementById(id).classList.remove('show')
+      );
+    }
+
+    function closeModal() { document.getElementById('empModal').classList.remove('open'); }
+
+    /** Validates then creates or updates an employee record. */
+    function saveEmployee() {
+      if (!isAdmin) return;
+
+      const fn    = document.getElementById('mFirst').value.trim();
+      const ln    = document.getElementById('mLast').value.trim();
+      const email = document.getElementById('mEmail').value.trim().toLowerCase();
+      const role  = document.getElementById('mRole').value;
+
+      let hasError = false;
+      const setErr = (id, condition) => {
+        document.getElementById(id).classList.toggle('show', condition);
+        if (condition) hasError = true;
+      };
+      setErr('mFirstErr', !fn);
+      setErr('mLastErr',  !ln);
+      setErr('mEmailErr', !email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email));
+      setErr('mRoleErr',  !role);
+      if (hasError) return;
+
+      let employees = getEmployees();
+
+      if (editingId) {
+        /* UPDATE */
+        const idx = employees.findIndex(e => e.id === editingId);
+        if (idx !== -1) {
+          employees[idx] = {
+            ...employees[idx],
+            firstName: fn, lastName: ln, email, role,
+            salary        : document.getElementById('mSalary').value.trim(),
+            joined        : document.getElementById('mJoined').value,
+            maritalStatus : document.getElementById('mMarital').value,
+            isAdmin       : role === 'Admin'
+          };
+          /* Refresh session if the admin edited their own record */
+          if (editingId === currentUser.id) {
+            currentUser = employees[idx];
+            localStorage.setItem(SESSION, JSON.stringify(currentUser));
+          }
+        }
+        showToast('Employee updated successfully!');
+      } else {
+        /* CREATE */
+        if (employees.find(e => e.email.toLowerCase() === email)) {
+          showToast('An account with this email already exists.', true);
+          return;
+        }
+        employees.push({
+          id            : Date.now(),
+          firstName: fn, lastName: ln, email, role,
+          password      : document.getElementById('mPass').value || 'Emp@123',
+          salary        : document.getElementById('mSalary').value.trim(),
+          joined        : document.getElementById('mJoined').value,
+          maritalStatus : document.getElementById('mMarital').value,
+          isAdmin       : role === 'Admin'
+        });
+        showToast('Employee added!');
+      }
+
+      saveEmployees(employees);
+      closeModal();
+      renderView(currentView);
+    }
+
+    /* ─────────────────────────────────────────
+       L. DELETE MODAL  (admin only)
+    ───────────────────────────────────────── */
+
+    function openDelModal(id)  { if (!isAdmin) return; deletingId = id; document.getElementById('delModal').classList.add('open'); }
+    function closeDelModal()   { document.getElementById('delModal').classList.remove('open'); }
+    function confirmDelete()   {
+      if (!isAdmin) return;
+      saveEmployees(getEmployees().filter(e => e.id !== deletingId));
+      closeDelModal();
+      showToast('Employee removed.');
+      renderView(currentView);
+    }
+
+    /* ─────────────────────────────────────────
+       M. TOAST
+    ───────────────────────────────────────── */
+
+    function showToast(msg, isErr = false) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.className   = 'toast' + (isErr ? ' is-err' : '') + ' show';
+      setTimeout(() => t.classList.remove('show'), 3000);
+    }
+
+    /* ─────────────────────────────────────────
+       N. EVENT LISTENERS
+    ───────────────────────────────────────── */
+
+    /* Close modals when clicking the dark backdrop */
+    document.getElementById('empModal').addEventListener('click', e => { if (e.target === e.currentTarget) closeModal(); });
+    document.getElementById('delModal').addEventListener('click', e => { if (e.target === e.currentTarget) closeDelModal(); });
+
+    /* Boot the app */
+    init();
+
+  </script>
+</body>
+</html>
